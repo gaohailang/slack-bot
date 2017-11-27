@@ -1,23 +1,34 @@
-const { execFile } = require("child_process");
+var spawn = require("child_process").spawn;
 
 module.exports = function(controller) {
-  controller.hears(["^sub"], "direct_message,direct_mention", function(
+  controller.hears(["^sub (.*)"], "direct_message,direct_mention", function(
     bot,
     message
   ) {
-    const url = message.replace(/^sub\s/g, "");
+    const url = message.match[1].replace(/[<>]/g, '');
 
-    const child = execFile(
-      __dirname + "../bin/diy-youtube-dl-sub.sh",
-      [url],
-      (error, stdout, stderr) => {
-        if (error) {
-          throw error;
-          bot.reply(message, "something wrong in get sub for youtube");
-        }
-        console.log(stdout);
-        bot.reply(message, stdout);
-      }
-    );
+    const ls = spawn(__dirname + "/../bin/diy-youtube-dl-sub.sh", [url], {
+      cwd: __dirname + "/../bin"
+    });
+    let out = "";
+    ls.stdout.on("data", function(data) {
+      const s = data.toString();
+      out += s;
+      console.log("stdout: " + s);
+    });
+
+    ls.stderr.on("data", function(data) {
+      const s = data.toString();
+      out += s;
+      console.log("stderr: " + s);
+    });
+
+    ls.on("exit", function(code) {
+      const s = code.toString();
+      out += s;
+      console.log("child process exited with code " + s);
+
+      bot.reply(message, out);
+    });
   });
 };
