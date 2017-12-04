@@ -5,7 +5,7 @@ module.exports = function(controller) {
     bot,
     message
   ) {
-    const url = message.match[1].replace(/[<>]/g, "");
+    const url = message.match[1].replace(/[<>]/g, '');
 
     const ls = spawn(__dirname + "/../bin/diy-youtube-dl-sub.sh", [url], {
       cwd: __dirname + "/../bin"
